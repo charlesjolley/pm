@@ -1,5 +1,5 @@
 {
-  "name": "prose",
+  "name": "pm",
   "version": "1.0.0",
   "description": "Prosemirror modules bundled as a module",
   "scripts": {
