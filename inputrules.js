@@ -1,25 +1,47 @@
 import {
   Plugin
-} from "./chunk-UIQZLVQX.js";
+} from "./chunk-PGXKHVSQ.js";
 import {
   canJoin,
   findWrapping
-} from "./chunk-HSTGJMAL.js";
-import "./chunk-O5MLGE4X.js";
+} from "./chunk-YXZDA2CT.js";
+import "./chunk-IFEYZUWM.js";
 
-// node_modules/prosemirror-inputrules/dist/index.es.js
-var InputRule = function InputRule2(match, handler) {
-  this.match = match;
-  this.handler = typeof handler == "string" ? stringHandler(handler) : handler;
+// node_modules/prosemirror-inputrules/dist/index.js
+var InputRule = class {
+  // :: (RegExp, union<string, (state: EditorState, match: [string], start: number, end: number) → ?Transaction>)
+  /**
+  Create an input rule. The rule applies when the user typed
+  something and the text directly in front of the cursor matches
+  `match`, which should end with `$`.
+  
+  The `handler` can be a string, in which case the matched text, or
+  the first matched group in the regexp, is replaced by that
+  string.
+  
+  Or a it can be a function, which will be called with the match
+  array produced by
+  [`RegExp.exec`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec),
+  as well as the start and end of the matched range, and which can
+  return a [transaction](https://prosemirror.net/docs/ref/#state.Transaction) that describes the
+  rule's effect, or null to indicate the input was not handled.
+  */
+  constructor(match, handler, options = {}) {
+    this.match = match;
+    this.match = match;
+    this.handler = typeof handler == "string" ? stringHandler(handler) : handler;
+    this.undoable = options.undoable !== false;
+    this.inCode = options.inCode || false;
+  }
 };
 function stringHandler(string) {
   return function(state, match, start, end) {
-    var insert = string;
+    let insert = string;
     if (match[1]) {
-      var offset = match[0].lastIndexOf(match[1]);
+      let offset = match[0].lastIndexOf(match[1]);
       insert += match[0].slice(offset + match[1].length);
       start += offset;
-      var cutOff = start - end;
+      let cutOff = start - end;
       if (cutOff > 0) {
         insert = match[0].slice(offset - cutOff, offset) + insert;
         start = end;
@@ -29,33 +51,29 @@ function stringHandler(string) {
   };
 }
 var MAX_MATCH = 500;
-function inputRules(ref) {
-  var rules = ref.rules;
-  var plugin = new Plugin({
+function inputRules({ rules }) {
+  let plugin = new Plugin({
     state: {
-      init: function init() {
+      init() {
         return null;
       },
-      apply: function apply(tr, prev) {
-        var stored = tr.getMeta(this);
-        if (stored) {
+      apply(tr, prev) {
+        let stored = tr.getMeta(this);
+        if (stored)
           return stored;
-        }
         return tr.selectionSet || tr.docChanged ? null : prev;
       }
     },
     props: {
-      handleTextInput: function handleTextInput(view, from, to, text) {
+      handleTextInput(view, from, to, text) {
         return run(view, from, to, text, rules, plugin);
       },
       handleDOMEvents: {
-        compositionend: function(view) {
-          setTimeout(function() {
-            var ref2 = view.state.selection;
-            var $cursor = ref2.$cursor;
-            if ($cursor) {
+        compositionend: (view) => {
+          setTimeout(() => {
+            let { $cursor } = view.state.selection;
+            if ($cursor)
               run(view, $cursor.pos, $cursor.pos, "", rules, plugin);
-            }
           });
         }
       }
@@ -65,37 +83,40 @@ function inputRules(ref) {
   return plugin;
 }
 function run(view, from, to, text, rules, plugin) {
-  if (view.composing) {
+  if (view.composing)
     return false;
-  }
-  var state = view.state, $from = state.doc.resolve(from);
-  if ($from.parent.type.spec.code) {
-    return false;
-  }
-  var textBefore = $from.parent.textBetween(Math.max(0, $from.parentOffset - MAX_MATCH), $from.parentOffset, null, "\uFFFC") + text;
-  for (var i = 0; i < rules.length; i++) {
-    var match = rules[i].match.exec(textBefore);
-    var tr = match && rules[i].handler(state, match, from - (match[0].length - text.length), to);
-    if (!tr) {
+  let state = view.state, $from = state.doc.resolve(from);
+  let textBefore = $from.parent.textBetween(Math.max(0, $from.parentOffset - MAX_MATCH), $from.parentOffset, null, "\uFFFC") + text;
+  for (let i = 0; i < rules.length; i++) {
+    let rule = rules[i];
+    if ($from.parent.type.spec.code) {
+      if (!rule.inCode)
+        continue;
+    } else if (rule.inCode === "only") {
       continue;
     }
-    view.dispatch(tr.setMeta(plugin, { transform: tr, from, to, text }));
+    let match = rule.match.exec(textBefore);
+    let tr = match && rule.handler(state, match, from - (match[0].length - text.length), to);
+    if (!tr)
+      continue;
+    if (rule.undoable)
+      tr.setMeta(plugin, { transform: tr, from, to, text });
+    view.dispatch(tr);
     return true;
   }
   return false;
 }
-function undoInputRule(state, dispatch) {
-  var plugins = state.plugins;
-  for (var i = 0; i < plugins.length; i++) {
-    var plugin = plugins[i], undoable = void 0;
+var undoInputRule = (state, dispatch) => {
+  let plugins = state.plugins;
+  for (let i = 0; i < plugins.length; i++) {
+    let plugin = plugins[i], undoable;
     if (plugin.spec.isInputRules && (undoable = plugin.getState(state))) {
       if (dispatch) {
-        var tr = state.tr, toUndo = undoable.transform;
-        for (var j = toUndo.steps.length - 1; j >= 0; j--) {
+        let tr = state.tr, toUndo = undoable.transform;
+        for (let j = toUndo.steps.length - 1; j >= 0; j--)
           tr.step(toUndo.steps[j].invert(toUndo.docs[j]));
-        }
         if (undoable.text) {
-          var marks = tr.doc.resolve(undoable.from).marks();
+          let marks = tr.doc.resolve(undoable.from).marks();
           tr.replaceWith(undoable.from, undoable.to, state.schema.text(undoable.text, marks));
         } else {
           tr.delete(undoable.from, undoable.to);
@@ -106,7 +127,7 @@ function undoInputRule(state, dispatch) {
     }
   }
   return false;
-}
+};
 var emDash = new InputRule(/--$/, "\u2014");
 var ellipsis = new InputRule(/\.\.\.$/, "\u2026");
 var openDoubleQuote = new InputRule(/(?:^|[\s\{\[\(\<'"\u2018\u201C])(")$/, "\u201C");
@@ -114,29 +135,26 @@ var closeDoubleQuote = new InputRule(/"$/, "\u201D");
 var openSingleQuote = new InputRule(/(?:^|[\s\{\[\(\<'"\u2018\u201C])(')$/, "\u2018");
 var closeSingleQuote = new InputRule(/'$/, "\u2019");
 var smartQuotes = [openDoubleQuote, closeDoubleQuote, openSingleQuote, closeSingleQuote];
-function wrappingInputRule(regexp, nodeType, getAttrs, joinPredicate) {
-  return new InputRule(regexp, function(state, match, start, end) {
-    var attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
-    var tr = state.tr.delete(start, end);
-    var $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && findWrapping(range, nodeType, attrs);
-    if (!wrapping) {
+function wrappingInputRule(regexp, nodeType, getAttrs = null, joinPredicate) {
+  return new InputRule(regexp, (state, match, start, end) => {
+    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    let tr = state.tr.delete(start, end);
+    let $start = tr.doc.resolve(start), range = $start.blockRange(), wrapping = range && findWrapping(range, nodeType, attrs);
+    if (!wrapping)
       return null;
-    }
     tr.wrap(range, wrapping);
-    var before = tr.doc.resolve(start - 1).nodeBefore;
-    if (before && before.type == nodeType && canJoin(tr.doc, start - 1) && (!joinPredicate || joinPredicate(match, before))) {
+    let before = tr.doc.resolve(start - 1).nodeBefore;
+    if (before && before.type == nodeType && canJoin(tr.doc, start - 1) && (!joinPredicate || joinPredicate(match, before)))
       tr.join(start - 1);
-    }
     return tr;
   });
 }
-function textblockTypeInputRule(regexp, nodeType, getAttrs) {
-  return new InputRule(regexp, function(state, match, start, end) {
-    var $start = state.doc.resolve(start);
-    var attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
-    if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) {
+function textblockTypeInputRule(regexp, nodeType, getAttrs = null) {
+  return new InputRule(regexp, (state, match, start, end) => {
+    let $start = state.doc.resolve(start);
+    let attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
+    if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType))
       return null;
-    }
     return state.tr.delete(start, end).setBlockType(start, start, nodeType, attrs);
   });
 }

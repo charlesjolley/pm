@@ -12,7 +12,7 @@ import {
   ResolvedPos,
   Schema,
   Slice
-} from "./chunk-O5MLGE4X.js";
+} from "./chunk-IFEYZUWM.js";
 export {
   ContentMatch,
   DOMParser,

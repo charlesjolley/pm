@@ -4,36 +4,31 @@ import {
   selectParentNode,
   setBlockType,
   wrapIn
-} from "./chunk-YCAZ6KEW.js";
+} from "./chunk-EHUXQQEF.js";
 import {
   redo,
   undo
-} from "./chunk-RIP6YN2N.js";
+} from "./chunk-A4QKP2Q7.js";
 import {
   Plugin
-} from "./chunk-UIQZLVQX.js";
-import "./chunk-HSTGJMAL.js";
-import "./chunk-O5MLGE4X.js";
+} from "./chunk-PGXKHVSQ.js";
+import "./chunk-YXZDA2CT.js";
+import "./chunk-IFEYZUWM.js";
 
-// node_modules/crelt/index.es.js
+// node_modules/crelt/index.js
 function crelt() {
   var elt = arguments[0];
-  if (typeof elt == "string")
-    elt = document.createElement(elt);
+  if (typeof elt == "string") elt = document.createElement(elt);
   var i = 1, next = arguments[1];
   if (next && typeof next == "object" && next.nodeType == null && !Array.isArray(next)) {
-    for (var name in next)
-      if (Object.prototype.hasOwnProperty.call(next, name)) {
-        var value = next[name];
-        if (typeof value == "string")
-          elt.setAttribute(name, value);
-        else if (value != null)
-          elt[name] = value;
-      }
+    for (var name in next) if (Object.prototype.hasOwnProperty.call(next, name)) {
+      var value = next[name];
+      if (typeof value == "string") elt.setAttribute(name, value);
+      else if (value != null) elt[name] = value;
+    }
     i++;
   }
-  for (; i < arguments.length; i++)
-    add(elt, arguments[i]);
+  for (; i < arguments.length; i++) add(elt, arguments[i]);
   return elt;
 }
 function add(elt, child) {
@@ -43,107 +38,112 @@ function add(elt, child) {
   } else if (child.nodeType != null) {
     elt.appendChild(child);
   } else if (Array.isArray(child)) {
-    for (var i = 0; i < child.length; i++)
-      add(elt, child[i]);
+    for (var i = 0; i < child.length; i++) add(elt, child[i]);
   } else {
     throw new RangeError("Unsupported child node: " + child);
   }
 }
 
-// node_modules/prosemirror-menu/dist/index.es.js
+// node_modules/prosemirror-menu/dist/index.js
 var SVG = "http://www.w3.org/2000/svg";
 var XLINK = "http://www.w3.org/1999/xlink";
-var prefix = "ProseMirror-icon";
+var prefix$2 = "ProseMirror-icon";
 function hashPath(path) {
-  var hash = 0;
-  for (var i = 0; i < path.length; i++) {
+  let hash = 0;
+  for (let i = 0; i < path.length; i++)
     hash = (hash << 5) - hash + path.charCodeAt(i) | 0;
-  }
   return hash;
 }
-function getIcon(icon) {
-  var node = document.createElement("div");
-  node.className = prefix;
+function getIcon(root, icon) {
+  let doc = (root.nodeType == 9 ? root : root.ownerDocument) || document;
+  let node = doc.createElement("div");
+  node.className = prefix$2;
   if (icon.path) {
-    var name = "pm-icon-" + hashPath(icon.path).toString(16);
-    if (!document.getElementById(name)) {
-      buildSVG(name, icon);
-    }
-    var svg = node.appendChild(document.createElementNS(SVG, "svg"));
-    svg.style.width = icon.width / icon.height + "em";
-    var use = svg.appendChild(document.createElementNS(SVG, "use"));
-    use.setAttributeNS(XLINK, "href", /([^#]*)/.exec(document.location)[1] + "#" + name);
+    let { path, width, height } = icon;
+    let name = "pm-icon-" + hashPath(path).toString(16);
+    if (!doc.getElementById(name))
+      buildSVG(root, name, icon);
+    let svg = node.appendChild(doc.createElementNS(SVG, "svg"));
+    svg.style.width = width / height + "em";
+    let use = svg.appendChild(doc.createElementNS(SVG, "use"));
+    use.setAttributeNS(XLINK, "href", /([^#]*)/.exec(doc.location.toString())[1] + "#" + name);
   } else if (icon.dom) {
     node.appendChild(icon.dom.cloneNode(true));
   } else {
-    node.appendChild(document.createElement("span")).textContent = icon.text || "";
-    if (icon.css) {
-      node.firstChild.style.cssText = icon.css;
-    }
+    let { text, css } = icon;
+    node.appendChild(doc.createElement("span")).textContent = text || "";
+    if (css)
+      node.firstChild.style.cssText = css;
   }
   return node;
 }
-function buildSVG(name, data) {
-  var collection = document.getElementById(prefix + "-collection");
+function buildSVG(root, name, data) {
+  let [doc, top] = root.nodeType == 9 ? [root, root.body] : [root.ownerDocument || document, root];
+  let collection = doc.getElementById(prefix$2 + "-collection");
   if (!collection) {
-    collection = document.createElementNS(SVG, "svg");
-    collection.id = prefix + "-collection";
+    collection = doc.createElementNS(SVG, "svg");
+    collection.id = prefix$2 + "-collection";
     collection.style.display = "none";
-    document.body.insertBefore(collection, document.body.firstChild);
+    top.insertBefore(collection, top.firstChild);
   }
-  var sym = document.createElementNS(SVG, "symbol");
+  let sym = doc.createElementNS(SVG, "symbol");
   sym.id = name;
   sym.setAttribute("viewBox", "0 0 " + data.width + " " + data.height);
-  var path = sym.appendChild(document.createElementNS(SVG, "path"));
+  let path = sym.appendChild(doc.createElementNS(SVG, "path"));
   path.setAttribute("d", data.path);
   collection.appendChild(sym);
 }
 var prefix$1 = "ProseMirror-menu";
-var MenuItem = function MenuItem2(spec) {
-  this.spec = spec;
-};
-MenuItem.prototype.render = function render(view) {
-  var spec = this.spec;
-  var dom = spec.render ? spec.render(view) : spec.icon ? getIcon(spec.icon) : spec.label ? crelt("div", null, translate(view, spec.label)) : null;
-  if (!dom) {
-    throw new RangeError("MenuItem without icon or label property");
+var MenuItem = class {
+  /**
+  Create a menu item.
+  */
+  constructor(spec) {
+    this.spec = spec;
   }
-  if (spec.title) {
-    var title = typeof spec.title === "function" ? spec.title(view.state) : spec.title;
-    dom.setAttribute("title", translate(view, title));
-  }
-  if (spec.class) {
-    dom.classList.add(spec.class);
-  }
-  if (spec.css) {
-    dom.style.cssText += spec.css;
-  }
-  dom.addEventListener("mousedown", function(e) {
-    e.preventDefault();
-    if (!dom.classList.contains(prefix$1 + "-disabled")) {
-      spec.run(view.state, view.dispatch, view, e);
+  /**
+  Renders the icon according to its [display
+  spec](https://prosemirror.net/docs/ref/#menu.MenuItemSpec.display), and adds an event handler which
+  executes the command when the representation is clicked.
+  */
+  render(view) {
+    let spec = this.spec;
+    let dom = spec.render ? spec.render(view) : spec.icon ? getIcon(view.root, spec.icon) : spec.label ? crelt("div", null, translate(view, spec.label)) : null;
+    if (!dom)
+      throw new RangeError("MenuItem without icon or label property");
+    if (spec.title) {
+      const title = typeof spec.title === "function" ? spec.title(view.state) : spec.title;
+      dom.setAttribute("title", translate(view, title));
     }
-  });
-  function update2(state) {
-    if (spec.select) {
-      var selected = spec.select(state);
-      dom.style.display = selected ? "" : "none";
-      if (!selected) {
-        return false;
+    if (spec.class)
+      dom.classList.add(spec.class);
+    if (spec.css)
+      dom.style.cssText += spec.css;
+    dom.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      if (!dom.classList.contains(prefix$1 + "-disabled"))
+        spec.run(view.state, view.dispatch, view, e);
+    });
+    function update(state) {
+      if (spec.select) {
+        let selected = spec.select(state);
+        dom.style.display = selected ? "" : "none";
+        if (!selected)
+          return false;
       }
+      let enabled = true;
+      if (spec.enable) {
+        enabled = spec.enable(state) || false;
+        setClass(dom, prefix$1 + "-disabled", !enabled);
+      }
+      if (spec.active) {
+        let active = enabled && spec.active(state) || false;
+        setClass(dom, prefix$1 + "-active", active);
+      }
+      return true;
     }
-    var enabled = true;
-    if (spec.enable) {
-      enabled = spec.enable(state) || false;
-      setClass(dom, prefix$1 + "-disabled", !enabled);
-    }
-    if (spec.active) {
-      var active = enabled && spec.active(state) || false;
-      setClass(dom, prefix$1 + "-active", active);
-    }
-    return true;
+    return { dom, update };
   }
-  return { dom, update: update2 };
 };
 function translate(view, text) {
   return view._props.translate ? view._props.translate(text) : text;
@@ -156,153 +156,164 @@ function markMenuEvent(e) {
 function isMenuEvent(wrapper) {
   return Date.now() - 100 < lastMenuEvent.time && lastMenuEvent.node && wrapper.contains(lastMenuEvent.node);
 }
-var Dropdown = function Dropdown2(content, options) {
-  this.options = options || {};
-  this.content = Array.isArray(content) ? content : [content];
-};
-Dropdown.prototype.render = function render2(view) {
-  var this$1 = this;
-  var content = renderDropdownItems(this.content, view);
-  var label = crelt("div", {
-    class: prefix$1 + "-dropdown " + (this.options.class || ""),
-    style: this.options.css
-  }, translate(view, this.options.label));
-  if (this.options.title) {
-    label.setAttribute("title", translate(view, this.options.title));
+var Dropdown = class {
+  /**
+  Create a dropdown wrapping the elements.
+  */
+  constructor(content, options = {}) {
+    this.options = options;
+    this.options = options || {};
+    this.content = Array.isArray(content) ? content : [content];
   }
-  var wrap = crelt("div", { class: prefix$1 + "-dropdown-wrap" }, label);
-  var open = null, listeningOnClose = null;
-  var close = function() {
-    if (open && open.close()) {
-      open = null;
-      window.removeEventListener("mousedown", listeningOnClose);
+  /**
+  Render the dropdown menu and sub-items.
+  */
+  render(view) {
+    let content = renderDropdownItems(this.content, view);
+    let win = view.dom.ownerDocument.defaultView || window;
+    let label = crelt("div", {
+      class: prefix$1 + "-dropdown " + (this.options.class || ""),
+      style: this.options.css
+    }, translate(view, this.options.label || ""));
+    if (this.options.title)
+      label.setAttribute("title", translate(view, this.options.title));
+    let wrap = crelt("div", { class: prefix$1 + "-dropdown-wrap" }, label);
+    let open = null;
+    let listeningOnClose = null;
+    let close = () => {
+      if (open && open.close()) {
+        open = null;
+        win.removeEventListener("mousedown", listeningOnClose);
+      }
+    };
+    label.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      markMenuEvent(e);
+      if (open) {
+        close();
+      } else {
+        open = this.expand(wrap, content.dom);
+        win.addEventListener("mousedown", listeningOnClose = () => {
+          if (!isMenuEvent(wrap))
+            close();
+        });
+      }
+    });
+    function update(state) {
+      let inner = content.update(state);
+      wrap.style.display = inner ? "" : "none";
+      return inner;
     }
-  };
-  label.addEventListener("mousedown", function(e) {
-    e.preventDefault();
-    markMenuEvent(e);
-    if (open) {
-      close();
-    } else {
-      open = this$1.expand(wrap, content.dom);
-      window.addEventListener("mousedown", listeningOnClose = function() {
-        if (!isMenuEvent(wrap)) {
-          close();
-        }
-      });
-    }
-  });
-  function update2(state) {
-    var inner = content.update(state);
-    wrap.style.display = inner ? "" : "none";
-    return inner;
+    return { dom: wrap, update };
   }
-  return { dom: wrap, update: update2 };
-};
-Dropdown.prototype.expand = function expand(dom, items) {
-  var menuDOM = crelt("div", { class: prefix$1 + "-dropdown-menu " + (this.options.class || "") }, items);
-  var done = false;
-  function close() {
-    if (done) {
-      return;
+  /**
+  @internal
+  */
+  expand(dom, items) {
+    let menuDOM = crelt("div", { class: prefix$1 + "-dropdown-menu " + (this.options.class || "") }, items);
+    let done = false;
+    function close() {
+      if (done)
+        return false;
+      done = true;
+      dom.removeChild(menuDOM);
+      return true;
     }
-    done = true;
-    dom.removeChild(menuDOM);
-    return true;
+    dom.appendChild(menuDOM);
+    return { close, node: menuDOM };
   }
-  dom.appendChild(menuDOM);
-  return { close, node: menuDOM };
 };
 function renderDropdownItems(items, view) {
-  var rendered = [], updates = [];
-  for (var i = 0; i < items.length; i++) {
-    var ref = items[i].render(view);
-    var dom = ref.dom;
-    var update2 = ref.update;
+  let rendered = [], updates = [];
+  for (let i = 0; i < items.length; i++) {
+    let { dom, update } = items[i].render(view);
     rendered.push(crelt("div", { class: prefix$1 + "-dropdown-item" }, dom));
-    updates.push(update2);
+    updates.push(update);
   }
   return { dom: rendered, update: combineUpdates(updates, rendered) };
 }
 function combineUpdates(updates, nodes) {
-  return function(state) {
-    var something = false;
-    for (var i = 0; i < updates.length; i++) {
-      var up = updates[i](state);
+  return (state) => {
+    let something = false;
+    for (let i = 0; i < updates.length; i++) {
+      let up = updates[i](state);
       nodes[i].style.display = up ? "" : "none";
-      if (up) {
+      if (up)
         something = true;
-      }
     }
     return something;
   };
 }
-var DropdownSubmenu = function DropdownSubmenu2(content, options) {
-  this.options = options || {};
-  this.content = Array.isArray(content) ? content : [content];
-};
-DropdownSubmenu.prototype.render = function render3(view) {
-  var items = renderDropdownItems(this.content, view);
-  var label = crelt("div", { class: prefix$1 + "-submenu-label" }, translate(view, this.options.label));
-  var wrap = crelt("div", { class: prefix$1 + "-submenu-wrap" }, label, crelt("div", { class: prefix$1 + "-submenu" }, items.dom));
-  var listeningOnClose = null;
-  label.addEventListener("mousedown", function(e) {
-    e.preventDefault();
-    markMenuEvent(e);
-    setClass(wrap, prefix$1 + "-submenu-wrap-active");
-    if (!listeningOnClose) {
-      window.addEventListener("mousedown", listeningOnClose = function() {
-        if (!isMenuEvent(wrap)) {
-          wrap.classList.remove(prefix$1 + "-submenu-wrap-active");
-          window.removeEventListener("mousedown", listeningOnClose);
-          listeningOnClose = null;
-        }
-      });
-    }
-  });
-  function update2(state) {
-    var inner = items.update(state);
-    wrap.style.display = inner ? "" : "none";
-    return inner;
+var DropdownSubmenu = class {
+  /**
+  Creates a submenu for the given group of menu elements. The
+  following options are recognized:
+  */
+  constructor(content, options = {}) {
+    this.options = options;
+    this.content = Array.isArray(content) ? content : [content];
   }
-  return { dom: wrap, update: update2 };
+  /**
+  Renders the submenu.
+  */
+  render(view) {
+    let items = renderDropdownItems(this.content, view);
+    let win = view.dom.ownerDocument.defaultView || window;
+    let label = crelt("div", { class: prefix$1 + "-submenu-label" }, translate(view, this.options.label || ""));
+    let wrap = crelt("div", { class: prefix$1 + "-submenu-wrap" }, label, crelt("div", { class: prefix$1 + "-submenu" }, items.dom));
+    let listeningOnClose = null;
+    label.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      markMenuEvent(e);
+      setClass(wrap, prefix$1 + "-submenu-wrap-active", false);
+      if (!listeningOnClose)
+        win.addEventListener("mousedown", listeningOnClose = () => {
+          if (!isMenuEvent(wrap)) {
+            wrap.classList.remove(prefix$1 + "-submenu-wrap-active");
+            win.removeEventListener("mousedown", listeningOnClose);
+            listeningOnClose = null;
+          }
+        });
+    });
+    function update(state) {
+      let inner = items.update(state);
+      wrap.style.display = inner ? "" : "none";
+      return inner;
+    }
+    return { dom: wrap, update };
+  }
 };
 function renderGrouped(view, content) {
-  var result = document.createDocumentFragment();
-  var updates = [], separators = [];
-  for (var i = 0; i < content.length; i++) {
-    var items = content[i], localUpdates = [], localNodes = [];
-    for (var j = 0; j < items.length; j++) {
-      var ref = items[j].render(view);
-      var dom = ref.dom;
-      var update$1 = ref.update;
-      var span = crelt("span", { class: prefix$1 + "item" }, dom);
+  let result = document.createDocumentFragment();
+  let updates = [], separators = [];
+  for (let i = 0; i < content.length; i++) {
+    let items = content[i], localUpdates = [], localNodes = [];
+    for (let j = 0; j < items.length; j++) {
+      let { dom, update: update2 } = items[j].render(view);
+      let span = crelt("span", { class: prefix$1 + "item" }, dom);
       result.appendChild(span);
       localNodes.push(span);
-      localUpdates.push(update$1);
+      localUpdates.push(update2);
     }
     if (localUpdates.length) {
       updates.push(combineUpdates(localUpdates, localNodes));
-      if (i < content.length - 1) {
+      if (i < content.length - 1)
         separators.push(result.appendChild(separator()));
-      }
     }
   }
-  function update2(state) {
-    var something = false, needSep = false;
-    for (var i2 = 0; i2 < updates.length; i2++) {
-      var hasContent = updates[i2](state);
-      if (i2) {
-        separators[i2 - 1].style.display = needSep && hasContent ? "" : "none";
-      }
+  function update(state) {
+    let something = false, needSep = false;
+    for (let i = 0; i < updates.length; i++) {
+      let hasContent = updates[i](state);
+      if (i)
+        separators[i - 1].style.display = needSep && hasContent ? "" : "none";
       needSep = hasContent;
-      if (hasContent) {
+      if (hasContent)
         something = true;
-      }
     }
     return something;
   }
-  return { dom: result, update: update2 };
+  return { dom: result, update };
 }
 function separator() {
   return crelt("span", { class: prefix$1 + "separator" });
@@ -368,227 +379,195 @@ var icons = {
 var joinUpItem = new MenuItem({
   title: "Join with above block",
   run: joinUp,
-  select: function(state) {
-    return joinUp(state);
-  },
+  select: (state) => joinUp(state),
   icon: icons.join
 });
 var liftItem = new MenuItem({
   title: "Lift out of enclosing block",
   run: lift,
-  select: function(state) {
-    return lift(state);
-  },
+  select: (state) => lift(state),
   icon: icons.lift
 });
 var selectParentNodeItem = new MenuItem({
   title: "Select parent node",
   run: selectParentNode,
-  select: function(state) {
-    return selectParentNode(state);
-  },
+  select: (state) => selectParentNode(state),
   icon: icons.selectParentNode
 });
 var undoItem = new MenuItem({
   title: "Undo last change",
   run: undo,
-  enable: function(state) {
-    return undo(state);
-  },
+  enable: (state) => undo(state),
   icon: icons.undo
 });
 var redoItem = new MenuItem({
   title: "Redo last undone change",
   run: redo,
-  enable: function(state) {
-    return redo(state);
-  },
+  enable: (state) => redo(state),
   icon: icons.redo
 });
 function wrapItem(nodeType, options) {
-  var passedOptions = {
-    run: function run(state, dispatch) {
+  let passedOptions = {
+    run(state, dispatch) {
       return wrapIn(nodeType, options.attrs)(state, dispatch);
     },
-    select: function select(state) {
-      return wrapIn(nodeType, options.attrs instanceof Function ? null : options.attrs)(state);
+    select(state) {
+      return wrapIn(nodeType, options.attrs)(state);
     }
   };
-  for (var prop in options) {
+  for (let prop in options)
     passedOptions[prop] = options[prop];
-  }
   return new MenuItem(passedOptions);
 }
 function blockTypeItem(nodeType, options) {
-  var command = setBlockType(nodeType, options.attrs);
-  var passedOptions = {
+  let command = setBlockType(nodeType, options.attrs);
+  let passedOptions = {
     run: command,
-    enable: function enable(state) {
+    enable(state) {
       return command(state);
     },
-    active: function active(state) {
-      var ref = state.selection;
-      var $from = ref.$from;
-      var to = ref.to;
-      var node = ref.node;
-      if (node) {
+    active(state) {
+      let { $from, to, node } = state.selection;
+      if (node)
         return node.hasMarkup(nodeType, options.attrs);
-      }
       return to <= $from.end() && $from.parent.hasMarkup(nodeType, options.attrs);
     }
   };
-  for (var prop in options) {
+  for (let prop in options)
     passedOptions[prop] = options[prop];
-  }
   return new MenuItem(passedOptions);
 }
 function setClass(dom, cls, on) {
-  if (on) {
+  if (on)
     dom.classList.add(cls);
-  } else {
+  else
     dom.classList.remove(cls);
-  }
 }
-var prefix$2 = "ProseMirror-menubar";
+var prefix = "ProseMirror-menubar";
 function isIOS() {
-  if (typeof navigator == "undefined") {
+  if (typeof navigator == "undefined")
     return false;
-  }
-  var agent = navigator.userAgent;
+  let agent = navigator.userAgent;
   return !/Edge\/\d/.test(agent) && /AppleWebKit/.test(agent) && /Mobile\/\w+/.test(agent);
 }
 function menuBar(options) {
   return new Plugin({
-    view: function view(editorView) {
+    view(editorView) {
       return new MenuBarView(editorView, options);
     }
   });
 }
-var MenuBarView = function MenuBarView2(editorView, options) {
-  var this$1 = this;
-  this.editorView = editorView;
-  this.options = options;
-  this.wrapper = crelt("div", { class: prefix$2 + "-wrapper" });
-  this.menu = this.wrapper.appendChild(crelt("div", { class: prefix$2 }));
-  this.menu.className = prefix$2;
-  this.spacer = null;
-  editorView.dom.parentNode.replaceChild(this.wrapper, editorView.dom);
-  this.wrapper.appendChild(editorView.dom);
-  this.maxHeight = 0;
-  this.widthForMaxHeight = 0;
-  this.floating = false;
-  var ref = renderGrouped(this.editorView, this.options.content);
-  var dom = ref.dom;
-  var update2 = ref.update;
-  this.contentUpdate = update2;
-  this.menu.appendChild(dom);
-  this.update();
-  if (options.floating && !isIOS()) {
-    this.updateFloat();
-    var potentialScrollers = getAllWrapping(this.wrapper);
-    this.scrollFunc = function(e) {
-      var root = this$1.editorView.root;
-      if (!(root.body || root).contains(this$1.wrapper)) {
-        potentialScrollers.forEach(function(el) {
-          return el.removeEventListener("scroll", this$1.scrollFunc);
-        });
-      } else {
-        this$1.updateFloat(e.target.getBoundingClientRect && e.target);
-      }
-    };
-    potentialScrollers.forEach(function(el) {
-      return el.addEventListener("scroll", this$1.scrollFunc);
-    });
-  }
-};
-MenuBarView.prototype.update = function update() {
-  this.contentUpdate(this.editorView.state);
-  if (this.floating) {
-    this.updateScrollCursor();
-  } else {
-    if (this.menu.offsetWidth != this.widthForMaxHeight) {
-      this.widthForMaxHeight = this.menu.offsetWidth;
-      this.maxHeight = 0;
-    }
-    if (this.menu.offsetHeight > this.maxHeight) {
-      this.maxHeight = this.menu.offsetHeight;
-      this.menu.style.minHeight = this.maxHeight + "px";
+var MenuBarView = class {
+  constructor(editorView, options) {
+    this.editorView = editorView;
+    this.options = options;
+    this.spacer = null;
+    this.maxHeight = 0;
+    this.widthForMaxHeight = 0;
+    this.floating = false;
+    this.scrollHandler = null;
+    this.wrapper = crelt("div", { class: prefix + "-wrapper" });
+    this.menu = this.wrapper.appendChild(crelt("div", { class: prefix }));
+    this.menu.className = prefix;
+    if (editorView.dom.parentNode)
+      editorView.dom.parentNode.replaceChild(this.wrapper, editorView.dom);
+    this.wrapper.appendChild(editorView.dom);
+    let { dom, update } = renderGrouped(this.editorView, this.options.content);
+    this.contentUpdate = update;
+    this.menu.appendChild(dom);
+    this.update();
+    if (options.floating && !isIOS()) {
+      this.updateFloat();
+      let potentialScrollers = getAllWrapping(this.wrapper);
+      this.scrollHandler = (e) => {
+        let root = this.editorView.root;
+        if (!(root.body || root).contains(this.wrapper))
+          potentialScrollers.forEach((el) => el.removeEventListener("scroll", this.scrollHandler));
+        else
+          this.updateFloat(e.target.getBoundingClientRect ? e.target : void 0);
+      };
+      potentialScrollers.forEach((el) => el.addEventListener("scroll", this.scrollHandler));
     }
   }
-};
-MenuBarView.prototype.updateScrollCursor = function updateScrollCursor() {
-  var selection = this.editorView.root.getSelection();
-  if (!selection.focusNode) {
-    return;
-  }
-  var rects = selection.getRangeAt(0).getClientRects();
-  var selRect = rects[selectionIsInverted(selection) ? 0 : rects.length - 1];
-  if (!selRect) {
-    return;
-  }
-  var menuRect = this.menu.getBoundingClientRect();
-  if (selRect.top < menuRect.bottom && selRect.bottom > menuRect.top) {
-    var scrollable = findWrappingScrollable(this.wrapper);
-    if (scrollable) {
-      scrollable.scrollTop -= menuRect.bottom - selRect.top;
-    }
-  }
-};
-MenuBarView.prototype.updateFloat = function updateFloat(scrollAncestor) {
-  var parent = this.wrapper, editorRect = parent.getBoundingClientRect(), top = scrollAncestor ? Math.max(0, scrollAncestor.getBoundingClientRect().top) : 0;
-  if (this.floating) {
-    if (editorRect.top >= top || editorRect.bottom < this.menu.offsetHeight + 10) {
-      this.floating = false;
-      this.menu.style.position = this.menu.style.left = this.menu.style.top = this.menu.style.width = "";
-      this.menu.style.display = "";
-      this.spacer.parentNode.removeChild(this.spacer);
-      this.spacer = null;
+  update() {
+    this.contentUpdate(this.editorView.state);
+    if (this.floating) {
+      this.updateScrollCursor();
     } else {
-      var border = (parent.offsetWidth - parent.clientWidth) / 2;
-      this.menu.style.left = editorRect.left + border + "px";
-      this.menu.style.display = editorRect.top > window.innerHeight ? "none" : "";
-      if (scrollAncestor) {
-        this.menu.style.top = top + "px";
+      if (this.menu.offsetWidth != this.widthForMaxHeight) {
+        this.widthForMaxHeight = this.menu.offsetWidth;
+        this.maxHeight = 0;
       }
-    }
-  } else {
-    if (editorRect.top < top && editorRect.bottom >= this.menu.offsetHeight + 10) {
-      this.floating = true;
-      var menuRect = this.menu.getBoundingClientRect();
-      this.menu.style.left = menuRect.left + "px";
-      this.menu.style.width = menuRect.width + "px";
-      if (scrollAncestor) {
-        this.menu.style.top = top + "px";
+      if (this.menu.offsetHeight > this.maxHeight) {
+        this.maxHeight = this.menu.offsetHeight;
+        this.menu.style.minHeight = this.maxHeight + "px";
       }
-      this.menu.style.position = "fixed";
-      this.spacer = crelt("div", { class: prefix$2 + "-spacer", style: "height: " + menuRect.height + "px" });
-      parent.insertBefore(this.spacer, this.menu);
     }
   }
-};
-MenuBarView.prototype.destroy = function destroy() {
-  if (this.wrapper.parentNode) {
-    this.wrapper.parentNode.replaceChild(this.editorView.dom, this.wrapper);
+  updateScrollCursor() {
+    let selection = this.editorView.root.getSelection();
+    if (!selection.focusNode)
+      return;
+    let rects = selection.getRangeAt(0).getClientRects();
+    let selRect = rects[selectionIsInverted(selection) ? 0 : rects.length - 1];
+    if (!selRect)
+      return;
+    let menuRect = this.menu.getBoundingClientRect();
+    if (selRect.top < menuRect.bottom && selRect.bottom > menuRect.top) {
+      let scrollable = findWrappingScrollable(this.wrapper);
+      if (scrollable)
+        scrollable.scrollTop -= menuRect.bottom - selRect.top;
+    }
+  }
+  updateFloat(scrollAncestor) {
+    let parent = this.wrapper, editorRect = parent.getBoundingClientRect(), top = scrollAncestor ? Math.max(0, scrollAncestor.getBoundingClientRect().top) : 0;
+    if (this.floating) {
+      if (editorRect.top >= top || editorRect.bottom < this.menu.offsetHeight + 10) {
+        this.floating = false;
+        this.menu.style.position = this.menu.style.left = this.menu.style.top = this.menu.style.width = "";
+        this.menu.style.display = "";
+        this.spacer.parentNode.removeChild(this.spacer);
+        this.spacer = null;
+      } else {
+        let border = (parent.offsetWidth - parent.clientWidth) / 2;
+        this.menu.style.left = editorRect.left + border + "px";
+        this.menu.style.display = editorRect.top > (this.editorView.dom.ownerDocument.defaultView || window).innerHeight ? "none" : "";
+        if (scrollAncestor)
+          this.menu.style.top = top + "px";
+      }
+    } else {
+      if (editorRect.top < top && editorRect.bottom >= this.menu.offsetHeight + 10) {
+        this.floating = true;
+        let menuRect = this.menu.getBoundingClientRect();
+        this.menu.style.left = menuRect.left + "px";
+        this.menu.style.width = menuRect.width + "px";
+        if (scrollAncestor)
+          this.menu.style.top = top + "px";
+        this.menu.style.position = "fixed";
+        this.spacer = crelt("div", { class: prefix + "-spacer", style: `height: ${menuRect.height}px` });
+        parent.insertBefore(this.spacer, this.menu);
+      }
+    }
+  }
+  destroy() {
+    if (this.wrapper.parentNode)
+      this.wrapper.parentNode.replaceChild(this.editorView.dom, this.wrapper);
   }
 };
 function selectionIsInverted(selection) {
-  if (selection.anchorNode == selection.focusNode) {
+  if (selection.anchorNode == selection.focusNode)
     return selection.anchorOffset > selection.focusOffset;
-  }
   return selection.anchorNode.compareDocumentPosition(selection.focusNode) == Node.DOCUMENT_POSITION_FOLLOWING;
 }
 function findWrappingScrollable(node) {
-  for (var cur = node.parentNode; cur; cur = cur.parentNode) {
-    if (cur.scrollHeight > cur.clientHeight) {
+  for (let cur = node.parentNode; cur; cur = cur.parentNode)
+    if (cur.scrollHeight > cur.clientHeight)
       return cur;
-    }
-  }
 }
 function getAllWrapping(node) {
-  var res = [window];
-  for (var cur = node.parentNode; cur; cur = cur.parentNode) {
+  let res = [node.ownerDocument.defaultView || window];
+  for (let cur = node.parentNode; cur; cur = cur.parentNode)
     res.push(cur);
-  }
   return res;
 }
 export {
